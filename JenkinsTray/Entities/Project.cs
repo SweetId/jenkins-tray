@@ -17,6 +17,9 @@ namespace JenkinsTray.Entities
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("path")]
+        public string Path { get; set; }
+
         [JsonProperty("displayName")]
         public string DisplayName { get; set; }
 

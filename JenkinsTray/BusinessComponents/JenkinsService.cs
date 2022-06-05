@@ -53,14 +53,14 @@ namespace JenkinsTray.BusinessComponents
             xml.LoadXml(xmlStr);
 
             var jobElements = xml.SelectNodes("/hudson/job");
-            var projects = GetProjects(jobElements, server);
+            var projects = GetProjects("", jobElements, server);
 
             logger.Info("Done loading projects");
 
             return projects;
         }
 
-        public List<Project> GetProjects(XmlNodeList jobElements, Server server)
+        public List<Project> GetProjects(string projectPath, XmlNodeList jobElements, Server server)
         {
             var projects = new List<Project>();
 
@@ -81,17 +81,18 @@ namespace JenkinsTray.BusinessComponents
                     {
                         nodes = xml.SelectNodes("/workflowMultiBranchProject/job");
                     }
-                    projects.AddRange(GetProjects(nodes, server));
+                    projects.AddRange(GetProjects(projectPath + projectName + "/", nodes, server));
                 }
                 else
                 {
                     var project = new Project();
                     project.Server = server;
-                    project.Name = projectName;
+                    project.Name = projectPath + projectName;
                     project.Url = projectUrl;
+                    project.Path = projectPath;
 
                     if (logger.IsDebugEnabled)
-                        logger.Debug("Found project " + projectName + " (" + projectUrl + ")");
+                        logger.Debug("Found project " + project.Name + " (" + projectUrl + ")");
 
                     // Ensure only unique entries in the returned list.
                     if (!projects.Contains(project))
@@ -131,7 +132,7 @@ namespace JenkinsTray.BusinessComponents
             var lastSuccessfulBuildUrl = XmlUtils.SelectSingleNodeText(xml, "/*/lastSuccessfulBuild/url");
             var lastFailedBuildUrl = XmlUtils.SelectSingleNodeText(xml, "/*/lastFailedBuild/url");
 
-            project.DisplayName = displayName;
+            project.DisplayName = project.Path + displayName;
             project.Queue.InQueue = inQueue.HasValue && inQueue.Value;
             if (!string.IsNullOrEmpty(queueId))
             {
